@@ -1,6 +1,7 @@
 # Wazuh Decoder Auto-Generator: Architecture & Engineering Log
 
-> [!info] Project Evolution
+> [!NOTE]
+> **Project Evolution**
 > **Phase 1** attempted to use a local LLM (Llama-3 via Ollama) to generate Wazuh decoders. This failed due to LLM regex hallucinations and JSON escaping nightmares.
 > 
 > **Phase 2** evolved into a **Deterministic Python Heuristic Engine**. We abandoned AI in favor of pure Python logic, utilizing an "Anchor & Bridge" architecture to bypass Wazuh's strict PCRE2 syntax quirks and achieve 100% reliable extraction.
@@ -11,7 +12,8 @@
 
 The hardest architectural shift in Phase 2 was moving from *LLM-generated static text matching* to **dynamic non-greedy bridging**.
 
-> [!warning] Why `re.escape()` Failed in Wazuh
+> [!WARNING]
+> **Why `re.escape()` Failed in Wazuh**
 > In Phase 1, the engine used Python's `re.escape()` to wrap static text between dynamic fields. This aggressively escaped dashes (`\-`) and brackets (`\[`). Wazuh's internal `OSRegex` and `PCRE2` engines notoriously throw `Syntax error on regex` when encountering these escaped characters, causing the Wazuh Manager to crash on restart.
 > 
 > **The Fix:** We abandoned `re.escape()` entirely. We implemented the "Anchor & Bridge" method. 
@@ -67,5 +69,3 @@ To enable bulk processing of 1,000 logs at once, the engine needed a way to grou
 *   **The Problem:** The engine generated a Parent decoder (`<prematch>`) and a Child decoder (`<regex>`). The parent matched, but the child extracted nothing.
 *   **The Cause:** When a parent decoder matches a `prematch`, Wazuh "consumes" that text. The child decoder then tries to apply its regex to the *remaining* text. If the child regex expected the text from the beginning of the line, it failed silently.
 *   **The Fix:** We configured the engine to skip any dynamic fields that overlap with the anchor word, ensuring the child regex only looks for fields that appear *after* the anchor.
-
-
