@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wazuh Decoder Auto-Generator</title>
+    <style>
+        body { background-color: #1e1e1e; color: #d4d4d4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+        .container { width: 90%; max-width: 1200px; }
+        textarea { width: 100%; height: 120px; background-color: #252526; color: #d4d4d4; border: 1px solid #3c3c3c; padding: 15px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
+        .btn { border: none; padding: 10px 20px; margin-top: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-primary { background-color: #007acc; color: white; }
+        .btn-primary:hover { background-color: #005a9e; }
+        .btn-secondary { background-color: #3c3c3c; color: #d4d4d4; margin-left: 10px; }
+        .btn-danger { background-color: #f44336; color: white; margin-left: 10px; }
+        .nav { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #3c3c3c; }
+        .nav a { color: #888; text-decoration: none; margin-right: 20px; font-size: 16px; }
+        .nav a.active { color: #4ec9b0; font-weight: bold; }
+        .results-container { display: flex; gap: 20px; margin-top: 30px; }
+        .output-block { flex: 1; position: relative; background-color: #252526; border: 1px solid #3c3c3c; border-radius: 5px; padding: 15px; }
+        pre { white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow-y: auto; margin: 0; }
+        h1 { color: #4ec9b0; }
+        h3 { margin-top: 0; color: #007acc; border-bottom: 1px solid #3c3c3c; padding-bottom: 10px; }
+        .sim-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .sim-table th, .sim-table td { text-align: left; padding: 8px; border-bottom: 1px solid #3c3c3c; }
+        .sim-table th { color: #888; }
+        .sim-success { color: #4ec9b0; font-weight: bold; }
+        .sim-fail { color: #f44336; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/" class="active">Single Log</a>
+            <a href="/bulk">Bulk Processing</a>
+        </div>
+        
+        <h1>Wazuh Decoder & Rule Auto-Generator</h1>
+        <p style="color: #888;">Powered by Deterministic Python Heuristics & PCRE2. 100% Local & Private.</p>
+        
+        <form id="gen-form" action="/generate" method="post">
+            <label for="raw_log"><b>Paste Raw Log Line:</b></label><br><br>
+            <textarea name="raw_log" id="raw_log" placeholder="Paste log here..." required>{{ raw_log }}</textarea>
+            <div>
+                <button type="submit" class="btn btn-primary" id="submit-btn">Generate & Simulate</button>
+                <button type="button" class="btn btn-danger" onclick="clearSingleLog()">Clear</button>
+            </div>
+        </form>
+
+        {% if xml_output %}
+        <div class="results-container">
+            <div class="output-block">
+                <h3>Generated Wazuh XML</h3>
+                <pre id="xml-output">{{ xml_output }}</pre>
+                <button class="btn btn-secondary" onclick="copyToClipboard()">Copy XML</button>
+            </div>
+            
+            <div class="output-block">
+                <h3>Simulation Results</h3>
+                {% if sim_data %}
+                    {% if sim_data.success %}
+                        <p class="sim-success">Match Successful! Extracted Fields:</p>
+                        <table class="sim-table">
+                            <tr><th>Wazuh Field</th><th>Extracted Value</th></tr>
+                            {% for field, value in sim_data.fields.items() %}
+                            <tr>
+                                <td style="color: #4ec9b0;">{{ field }}</td>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    {% else %}
+                        <p class="sim-fail">Match Failed: {{ sim_data.error }}</p>
+                        <p style="color: #888; font-size: 12px;">(Note: Wazuh's built-in decoders may intercept standard logs like Syslog or JSON before this custom decoder applies).</p>
+                    {% endif %}
+                {% else %}
+                    <p style="color: #888;">Simulation not run.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('gen-form').addEventListener('submit', function(e) {
+            var btn = document.getElementById('submit-btn');
+            btn.innerText = "Analyzing & Simulating...";
+            btn.disabled = true;
+        });
+
+        function copyToClipboard() {
+            const text = document.getElementById('xml-output').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            });
+        }
+
+        function clearSingleLog() {
+            // Redirect to root to clear the form and results
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

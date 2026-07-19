@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Processing - Wazuh Generator</title>
+    <style>
+        body { background-color: #1e1e1e; color: #d4d4d4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+        .container { width: 80%; max-width: 1000px; }
+        textarea { width: 100%; height: 200px; background-color: #252526; color: #d4d4d4; border: 1px solid #3c3c3c; padding: 15px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; font-size: 14px; }
+        .btn { border: none; padding: 10px 20px; margin-top: 10px; cursor: pointer; border-radius: 5px; font-weight: bold; font-size: 14px; text-decoration: none; display: inline-block; }
+        .btn-primary { background-color: #007acc; color: white; }
+        .btn-primary:hover { background-color: #005a9e; }
+        .btn-danger { background-color: #f44336; color: white; margin-left: 10px; }
+        .nav { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #3c3c3c; }
+        .nav a { color: #888; text-decoration: none; margin-right: 20px; font-size: 16px; }
+        .nav a.active { color: #4ec9b0; font-weight: bold; }
+        h1 { color: #4ec9b0; }
+        h2 { color: #007acc; }
+        .pattern-card { background-color: #252526; border: 1px solid #3c3c3c; border-radius: 5px; padding: 20px; margin-bottom: 20px; }
+        .pattern-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .pattern-count { background-color: #007acc; color: white; padding: 5px 10px; border-radius: 12px; font-size: 14px; }
+        .sample-log { background-color: #1e1e1e; padding: 10px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; color: #d4d4d4; margin-bottom: 15px; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">Single Log</a>
+            <a href="/bulk" class="active">Bulk Processing</a>
+        </div>
+        
+        <h1>Bulk Log Analysis</h1>
+        <p style="color: #888;">Paste up to 1,000 logs (one per line). The engine will find the top 3 most common structural patterns and let you generate decoders for them instantly.</p>
+        
+        <form id="bulk-form" action="/bulk/analyze" method="post">
+            <textarea name="bulk_logs" id="bulk_logs" placeholder="Paste logs here..." required></textarea>
+            <div>
+                <button type="submit" class="btn btn-primary">Analyze Patterns</button>
+                <button type="button" class="btn btn-danger" onclick="clearBulk()">Clear</button>
+            </div>
+        </form>
+
+        {% if results %}
+        <div style="margin-top: 40px;">
+            <h2>Analysis Complete</h2>
+            <p style="color: #4ec9b0; font-size: 18px;">
+                Found {{ results|length }} patterns covering {{ covered }} out of {{ total_logs }} logs ({{ coverage }}%).
+            </p>
+
+            {% for r in results %}
+            <div class="pattern-card">
+                <div class="pattern-header">
+                    <h3 style="margin: 0; color: #4ec9b0;">Pattern {{ loop.index }}</h3>
+                    <span class="pattern-count">{{ r.count }} logs</span>
+                </div>
+                <p style="color: #888; margin: 5px 0 10px 0;">Sample Log:</p>
+                <div class="sample-log">{{ r.sample_log }}</div>
+                
+                <a href="/?log={{ r.encoded_log }}" class="btn btn-primary">Generate Decoder for this Pattern</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Restore saved logs when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLogs = localStorage.getItem('wazuh_bulk_logs');
+            if (savedLogs) {
+                document.getElementById('bulk_logs').value = savedLogs;
+            }
+        });
+
+        // Save logs to localStorage when Analyze is clicked
+        document.getElementById('bulk-form').addEventListener('submit', function() {
+            const logs = document.getElementById('bulk_logs').value;
+            localStorage.setItem('wazuh_bulk_logs', logs);
+        });
+
+        // Clear logs from UI and localStorage
+        function clearBulk() {
+            localStorage.removeItem('wazuh_bulk_logs');
+            document.getElementById('bulk_logs').value = '';
+            // Reload the page to clear the results section
+            window.location.href = '/bulk';
+        }
+    </script>
+</body>
+</html>
