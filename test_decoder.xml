@@ -1,5 +1,0 @@
-<decoder name="custom-app">
-    <prematch>DEVICE</prematch>
-    <regex type="pcre2">.*?IP=([^,\s\)\];]+).*?STATUS=([^,\s\)\];]+).*?CODE=([^,\s\)\];]+).*?USER=([^,\s\)\];]+)</regex>
-    <order>ip, status, code, user</order>
-</decoder>

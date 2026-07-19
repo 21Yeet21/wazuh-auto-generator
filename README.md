@@ -52,7 +52,7 @@ Navigate to `http://localhost:8000` in your browser.
 
 This README only covers the deployment. To understand *why* certain architectural decisions were made (like bypassing `re.escape()` to prevent Wazuh syntax errors, or fixing the Timestamp capture group bug), read the full Engineering Log:
 
-**[Engineering Log & Architecture Deep Dive](docs/ENGINEERING_LOG.md)**
+**[Engineering Log & Architecture Deep Dive](docs/ARCHITECTURE.md)**
 
 ## License
 

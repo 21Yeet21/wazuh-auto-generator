@@ -1,7 +1,0 @@
-<group name="custom_logs,">
-    <rule id="100001" level="5">
-        <decoded_as>custom-app</decoded_as>
-        <description>Custom event: $(dstuser)</description>
-        <group>custom_rules,</group>
-    </rule>
-</group>
